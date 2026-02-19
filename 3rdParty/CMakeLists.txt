@@ -61,6 +61,11 @@ endif()
 
 target_compile_definitions(harfbuzz PRIVATE ${HARFBUZZ_DEFINITIONS})
 
+# Add MinGW-specific assembler flag for large object files (harfbuzz.cc is very large)
+if(WIN32 AND NOT MSVC)
+    target_compile_options(harfbuzz PRIVATE -Wa,-mbig-obj)
+endif()
+
 if(HARFBUZZ_BUILD_TYPE STREQUAL "Debug")
   target_compile_options(harfbuzz PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-g> $<$<COMPILE_LANGUAGE:C>:-g>)
 elseif(HARFBUZZ_BUILD_TYPE STREQUAL "Release" OR HARFBUZZ_BUILD_TYPE STREQUAL "Dist")
@@ -68,8 +73,13 @@ elseif(HARFBUZZ_BUILD_TYPE STREQUAL "Release" OR HARFBUZZ_BUILD_TYPE STREQUAL "D
 endif()
 
 if (WIN32)
-    # Set the warning level
-    add_compile_options(/W3)
+    # Set the warning level - use generator expressions to handle MSVC vs MinGW
+    if(MSVC)
+        add_compile_options(/W3)
+    else()
+        # MinGW/GCC
+        add_compile_options(-Wall -fPIC)
+    endif()
 else()
     add_compile_options(-Wall -fPIC)
 endif()
