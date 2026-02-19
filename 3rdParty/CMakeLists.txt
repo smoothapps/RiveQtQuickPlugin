@@ -40,6 +40,10 @@ include_directories("${RIVE_CPP_INCLUDE_DIR}")
 
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 
+# Disable harfbuzz-subset to avoid MinGW assembler issues with large files
+# The project only uses harfbuzz, not harfbuzz-subset
+set(HB_BUILD_SUBSET OFF CACHE BOOL "Build harfbuzz-subset" FORCE)
+
 add_subdirectory("harfbuzz" "harfbuzz_build")
 
 set(HARFBUZZ_BUILD_TYPE "${CMAKE_BUILD_TYPE}")

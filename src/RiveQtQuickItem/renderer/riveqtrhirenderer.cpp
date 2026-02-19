@@ -136,7 +136,7 @@ void RiveQtRhiRenderer::clipPath(rive::RenderPath *path)
         QPair<QPainterPath, QMatrix4x4>(qtPath->toQPainterPath(), transformMatrix()));
 }
 
-void RiveQtRhiRenderer::drawImage(const rive::RenderImage *image, rive::BlendMode blendMode, float opacity)
+void RiveQtRhiRenderer::drawImage(const rive::RenderImage *image, rive::ImageSampler sampler, rive::BlendMode blendMode, float opacity)
 {
     TextureTargetNode *node = getRiveDrawTargetNode();
 
@@ -173,7 +173,8 @@ void RiveQtRhiRenderer::drawImage(const rive::RenderImage *image, rive::BlendMod
     node->updateClippingGeometry(clipResult.toVertices());
 }
 
-void RiveQtRhiRenderer::drawImageMesh(const rive::RenderImage *image, rive::rcp<rive::RenderBuffer> vertices_f32,
+void RiveQtRhiRenderer::drawImageMesh(const rive::RenderImage *image, rive::ImageSampler sampler,
+                                      rive::rcp<rive::RenderBuffer> vertices_f32,
                                       rive::rcp<rive::RenderBuffer> uvCoords_f32, rive::rcp<rive::RenderBuffer> indices_u16,
                                       uint32_t vertexCount, uint32_t indexCount, rive::BlendMode blendMode, float opacity)
 {
@@ -269,6 +270,13 @@ void RiveQtRhiRenderer::recycleRiveNodes()
 const QMatrix4x4 &RiveQtRhiRenderer::transformMatrix() const
 {
     return m_rhiRenderStack.back().transform;
+}
+
+void RiveQtRhiRenderer::modulateOpacity(float opacity)
+{
+    if (!m_rhiRenderStack.isEmpty()) {
+        m_rhiRenderStack.back().opacity *= opacity;
+    }
 }
 
 float RiveQtRhiRenderer::currentOpacity()

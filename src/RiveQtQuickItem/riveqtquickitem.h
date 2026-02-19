@@ -481,7 +481,7 @@ private:
     QVector<AnimationInfo> m_animationList;
     QVector<StateMachineInfo> m_stateMachineList;
 
-    std::unique_ptr<rive::File> m_riveFile;
+    rive::rcp<rive::File> m_riveFile;
 
     mutable QScopedPointer<QSGTextureProvider> m_textureProvider;
 

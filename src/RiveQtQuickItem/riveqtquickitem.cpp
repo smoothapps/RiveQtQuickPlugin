@@ -619,7 +619,6 @@ bool RiveQtQuickItem::hitTest(const QPointF &pos, const rive::ListenerType &type
         m_currentStateMachineInstance->pointerUp(rive::Vec2D(m_lastMouseX, m_lastMouseY));
         return true;
     case rive::ListenerType::click:
-    case rive::ListenerType::draggableConstraint:
     case rive::ListenerType::event:
     case rive::ListenerType::enter:
     case rive::ListenerType::exit:

@@ -80,7 +80,7 @@ void RiveQtPainterRenderer::clipPath(rive::RenderPath *path)
     m_painter->setClipPath(qtPath->toQPainterPath(), Qt::ClipOperation::IntersectClip);
 }
 
-void RiveQtPainterRenderer::drawImage(const rive::RenderImage *image, rive::BlendMode blendMode, float opacity)
+void RiveQtPainterRenderer::drawImage(const rive::RenderImage *image, rive::ImageSampler sampler, rive::BlendMode blendMode, float opacity)
 {
     if (!image) {
         return;
@@ -113,11 +113,19 @@ void RiveQtPainterRenderer::drawImage(const rive::RenderImage *image, rive::Blen
     m_painter->setRenderHints(oldRenderHint);
 }
 
-void RiveQtPainterRenderer::drawImageMesh(const rive::RenderImage *image, rive::rcp<rive::RenderBuffer> vertices_f32,
+void RiveQtPainterRenderer::drawImageMesh(const rive::RenderImage *image, rive::ImageSampler sampler,
+                                          rive::rcp<rive::RenderBuffer> vertices_f32,
                                           rive::rcp<rive::RenderBuffer> uvCoords_f32, rive::rcp<rive::RenderBuffer> indices_u16,
                                           uint32_t vertexCount, uint32_t indexCount, rive::BlendMode blendMode, float opacity)
 {
     qCWarning(rqqpRendering) << "Draw image mesh is not implemented for qpainter approach";
+}
+
+void RiveQtPainterRenderer::modulateOpacity(float opacity)
+{
+    if (m_painter) {
+        m_painter->setOpacity(m_painter->opacity() * opacity);
+    }
 }
 
 QImage RiveQtPainterRenderer::convertRiveImageToQImage(const rive::RenderImage *image)
