@@ -37,6 +37,13 @@ include(FeatureSummary)
 # Find Qt package
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core Gui Qml Quick OpenGL )
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Qml Gui Quick OpenGL)
+# Qt6 private targets (required by RiveQtQuickItem; Homebrew Qt exposes them as separate packages)
+if (${QT_VERSION_MAJOR} EQUAL 6)
+    find_package(Qt6CorePrivate REQUIRED)
+    find_package(Qt6GuiPrivate REQUIRED)
+    find_package(Qt6QuickPrivate REQUIRED)
+    find_package(Qt6QmlPrivate REQUIRED)
+endif()
 
 if (${QT_VERSION_MAJOR} EQUAL 6)
     # TODO use new policy

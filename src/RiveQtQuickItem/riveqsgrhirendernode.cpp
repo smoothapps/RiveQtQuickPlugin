@@ -72,7 +72,15 @@ RiveQSGRHIRenderNode::RiveQSGRHIRenderNode(QQuickWindow *window, std::weak_ptr<r
 
     m_renderer = new RiveQtRhiRenderer(window, this);
 
-    m_renderer->updateViewPort(m_rect);
+    // High-DPI: Initialize pixel size (will be recalculated in prepare() with actual DPR)
+    qreal dpr = window->effectiveDevicePixelRatio();
+    m_pixelSize = QSize(qRound(geometry.width() * dpr), qRound(geometry.height() * dpr));
+    if (m_pixelSize.width() <= 0 || m_pixelSize.height() <= 0) {
+        m_pixelSize = QSize(qRound(geometry.width()), qRound(geometry.height()));
+    }
+    
+    // Viewport will be updated in prepare() with correct pixel size
+    m_renderer->updateViewPort(QRectF(0, 0, m_pixelSize.width(), m_pixelSize.height()));
     m_renderer->setRiveRect({ m_topLeftRivePosition, m_riveSize });
 
     setPostprocessingMode(RiveRenderSettings::SMAA);
@@ -443,16 +451,46 @@ void RiveQSGRHIRenderNode::prepare()
     }
 #endif
 
+    // High-DPI: Calculate pixel size from device pixel ratio
+    qreal dpr = m_window->effectiveDevicePixelRatio();
+    QSize newPixelSize(qRound(m_rect.width() * dpr), qRound(m_rect.height() * dpr));
+    
+    // Fallback to logical size if pixel size is invalid
+    if (newPixelSize.width() <= 0 || newPixelSize.height() <= 0) {
+        newPixelSize = QSize(qRound(m_rect.width()), qRound(m_rect.height()));
+    }
+    
+    // Recreate stencil buffer if pixel size changed (e.g., DPR change or window moved between displays)
+    bool pixelSizeChanged = (m_pixelSize != newPixelSize);
+    if (pixelSizeChanged) {
+        m_pixelSize = newPixelSize;
+        if (m_stencilClippingBuffer) {
+            m_cleanupList.removeAll(m_stencilClippingBuffer);
+            m_stencilClippingBuffer->destroy();
+            m_stencilClippingBuffer->deleteLater();
+            m_stencilClippingBuffer = nullptr;
+        }
+    }
+
     if (!m_stencilClippingBuffer) {
-        m_stencilClippingBuffer = rhi->newRenderBuffer(QRhiRenderBuffer::DepthStencil, QSize(m_rect.width(), m_rect.height()), m_sampleCount);
+        m_stencilClippingBuffer = rhi->newRenderBuffer(QRhiRenderBuffer::DepthStencil, m_pixelSize, m_sampleCount);
         m_stencilClippingBuffer->create();
         m_cleanupList.append(m_stencilClippingBuffer);
     }
 
     m_sampleCount = sampleCount;
-    bool textureCreated = m_renderSurfaceA.create(rhi, m_sampleCount, QSize(m_rect.width(), m_rect.height()), m_stencilClippingBuffer);
-    m_renderSurfaceB.create(rhi, m_sampleCount, QSize(m_rect.width(), m_rect.height()), m_stencilClippingBuffer);
-    m_renderSurfaceIntern.create(rhi, m_sampleCount, QSize(m_rect.width(), m_rect.height()), m_stencilClippingBuffer, {});
+    
+    // Recreate render surfaces if pixel size changed
+    if (pixelSizeChanged) {
+        m_renderSurfaceA.cleanUp();
+        m_renderSurfaceB.cleanUp();
+        m_renderSurfaceIntern.cleanUp();
+        m_currentRenderSurface = nullptr;
+    }
+    
+    bool textureCreated = m_renderSurfaceA.create(rhi, m_sampleCount, m_pixelSize, m_stencilClippingBuffer);
+    m_renderSurfaceB.create(rhi, m_sampleCount, m_pixelSize, m_stencilClippingBuffer);
+    m_renderSurfaceIntern.create(rhi, m_sampleCount, m_pixelSize, m_stencilClippingBuffer, {});
 
     // only set the renderSurface to A in case we created a new texture
     if (textureCreated) {
@@ -561,7 +599,9 @@ void RiveQSGRHIRenderNode::prepare()
     }
 
     if (m_renderer) {
-        m_renderer->updateViewPort(m_rect);
+        // High-DPI: Pass pixel-sized viewport to renderer so Rive draws at full resolution
+        QRectF pixelViewport(0, 0, m_pixelSize.width(), m_pixelSize.height());
+        m_renderer->updateViewPort(pixelViewport);
         m_renderer->setRiveRect({ m_topLeftRivePosition, m_riveSize });
     }
 
@@ -673,7 +713,8 @@ void RiveQSGRHIRenderNode::prepare()
         }
 
         if (m_postprocessing) {
-            m_postprocessing->initializePostprocessingPipeline(rhi, commandBuffer, QSize(m_rect.width(), m_rect.height()),
+            // High-DPI: Use pixel size for SMAA postprocessing resolution
+            m_postprocessing->initializePostprocessingPipeline(rhi, commandBuffer, m_pixelSize,
                                                            m_renderSurfaceA.texture, m_renderSurfaceB.texture);
         }
 

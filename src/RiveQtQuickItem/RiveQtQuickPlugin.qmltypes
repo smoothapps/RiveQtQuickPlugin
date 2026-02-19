@@ -8,6 +8,7 @@ import QtQuick.tooling 1.2
 Module {
     Component {
         file: "riveqtquickitem.h"
+        lineNumber: 43
         name: "RiveQtQuickItem"
         accessSemantics: "reference"
         defaultProperty: "data"
@@ -17,6 +18,7 @@ Module {
         exportMetaObjectRevisions: [256]
         Enum {
             name: "LoadingStatus"
+            lineNumber: 361
             values: ["Idle", "Loading", "Loaded", "Error", "Unloading"]
         }
         Property {
@@ -26,6 +28,7 @@ Module {
             write: "setFileSource"
             notify: "fileSourceChanged"
             index: 0
+            lineNumber: 67
         }
         Property {
             name: "loadingStatus"
@@ -33,6 +36,7 @@ Module {
             read: "loadingStatus"
             notify: "loadingStatusChanged"
             index: 1
+            lineNumber: 85
             isReadonly: true
         }
         Property {
@@ -42,6 +46,7 @@ Module {
             read: "artboards"
             notify: "artboardsChanged"
             index: 2
+            lineNumber: 110
             isReadonly: true
         }
         Property {
@@ -51,6 +56,7 @@ Module {
             read: "animations"
             notify: "animationsChanged"
             index: 3
+            lineNumber: 137
             isReadonly: true
         }
         Property {
@@ -60,6 +66,7 @@ Module {
             read: "stateMachines"
             notify: "stateMachinesChanged"
             index: 4
+            lineNumber: 162
             isReadonly: true
         }
         Property {
@@ -69,6 +76,7 @@ Module {
             write: "setCurrentArtboardIndex"
             notify: "currentArtboardIndexChanged"
             index: 5
+            lineNumber: 180
         }
         Property {
             name: "currentAnimationIndex"
@@ -77,6 +85,7 @@ Module {
             write: "triggerAnimation"
             notify: "currentAnimationIndexChanged"
             index: 6
+            lineNumber: 208
         }
         Property {
             name: "currentStateMachineIndex"
@@ -85,6 +94,7 @@ Module {
             write: "setCurrentStateMachineIndex"
             notify: "currentStateMachineIndexChanged"
             index: 7
+            lineNumber: 226
         }
         Property {
             name: "interactive"
@@ -93,6 +103,7 @@ Module {
             write: "setInteractive"
             notify: "interactiveChanged"
             index: 8
+            lineNumber: 244
         }
         Property {
             name: "stateMachineInterface"
@@ -102,6 +113,7 @@ Module {
             write: "setStateMachineInterface"
             notify: "stateMachineInterfaceChanged"
             index: 9
+            lineNumber: 272
         }
         Property {
             name: "renderQuality"
@@ -110,6 +122,7 @@ Module {
             write: "setRenderQuality"
             notify: "renderQualityChanged"
             index: 10
+            lineNumber: 294
         }
         Property {
             name: "postprocessingMode"
@@ -118,6 +131,7 @@ Module {
             write: "setPostprocessingMode"
             notify: "postprocessingModeChanged"
             index: 11
+            lineNumber: 314
         }
         Property {
             name: "fillMode"
@@ -126,6 +140,7 @@ Module {
             write: "setFillMode"
             notify: "fillModeChanged"
             index: 12
+            lineNumber: 336
         }
         Property {
             name: "frameRate"
@@ -133,32 +148,35 @@ Module {
             read: "frameRate"
             notify: "frameRateChanged"
             index: 13
+            lineNumber: 355
             isReadonly: true
         }
-        Signal { name: "animationsChanged" }
-        Signal { name: "artboardsChanged" }
-        Signal { name: "stateMachinesChanged" }
-        Signal { name: "fileSourceChanged" }
-        Signal { name: "loadingStatusChanged" }
-        Signal { name: "currentArtboardIndexChanged" }
-        Signal { name: "currentAnimationIndexChanged" }
-        Signal { name: "currentStateMachineIndexChanged" }
-        Signal { name: "interactiveChanged" }
+        Signal { name: "animationsChanged"; lineNumber: 418 }
+        Signal { name: "artboardsChanged"; lineNumber: 419 }
+        Signal { name: "stateMachinesChanged"; lineNumber: 420 }
+        Signal { name: "fileSourceChanged"; lineNumber: 422 }
+        Signal { name: "loadingStatusChanged"; lineNumber: 423 }
+        Signal { name: "currentArtboardIndexChanged"; lineNumber: 425 }
+        Signal { name: "currentAnimationIndexChanged"; lineNumber: 426 }
+        Signal { name: "currentStateMachineIndexChanged"; lineNumber: 427 }
+        Signal { name: "interactiveChanged"; lineNumber: 429 }
         Signal {
             name: "loadFileAfterUnloading"
+            lineNumber: 431
             Parameter { name: "fileName"; type: "QString" }
         }
-        Signal { name: "internalArtboardChanged" }
-        Signal { name: "internalStateMachineChanged" }
-        Signal { name: "stateMachineInterfaceChanged" }
-        Signal { name: "stateMachineStringInterfaceChanged" }
-        Signal { name: "renderQualityChanged" }
-        Signal { name: "postprocessingModeChanged" }
-        Signal { name: "fillModeChanged" }
-        Signal { name: "frameRateChanged" }
+        Signal { name: "internalArtboardChanged"; lineNumber: 432 }
+        Signal { name: "internalStateMachineChanged"; lineNumber: 433 }
+        Signal { name: "stateMachineInterfaceChanged"; lineNumber: 434 }
+        Signal { name: "stateMachineStringInterfaceChanged"; lineNumber: 435 }
+        Signal { name: "renderQualityChanged"; lineNumber: 437 }
+        Signal { name: "postprocessingModeChanged"; lineNumber: 438 }
+        Signal { name: "fillModeChanged"; lineNumber: 439 }
+        Signal { name: "frameRateChanged"; lineNumber: 441 }
     }
     Component {
         file: "rivestatemachineinput.h"
+        lineNumber: 154
         name: "RiveStateMachineInput"
         accessSemantics: "reference"
         prototype: "QObject"
@@ -169,6 +187,7 @@ Module {
             name: "RivePropertyType"
             isScoped: true
             type: "short"
+            lineNumber: 162
             values: ["RiveNumber", "RiveBoolean", "RiveTrigger"]
         }
         Property {
@@ -177,30 +196,36 @@ Module {
             read: "riveInputs"
             notify: "riveInputsChanged"
             index: 0
+            lineNumber: 157
             isReadonly: true
         }
-        Signal { name: "riveInputsChanged" }
-        Method { name: "updateValues" }
-        Method { name: "activateTrigger" }
-        Method { name: "handlePropertyChanged" }
+        Signal { name: "riveInputsChanged"; lineNumber: 191 }
+        Method { name: "updateValues"; lineNumber: 188 }
+        Method { name: "activateTrigger"; lineNumber: 194 }
+        Method { name: "handlePropertyChanged"; lineNumber: 195 }
         Method {
             name: "setRiveProperty"
+            lineNumber: 175
             Parameter { name: "propertyName"; type: "QString" }
             Parameter { name: "value"; type: "QVariant" }
         }
         Method {
             name: "getRiveProperty"
             type: "QVariant"
+            isMethodConstant: true
+            lineNumber: 176
             Parameter { name: "propertyName"; type: "QString" }
         }
         Method {
             name: "callTrigger"
+            lineNumber: 177
             Parameter { name: "triggerName"; type: "QString" }
         }
         Method {
             name: "listenTo"
             type: "QObject"
             isPointer: true
+            lineNumber: 178
             Parameter { name: "name"; type: "QString" }
         }
     }

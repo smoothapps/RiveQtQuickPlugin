@@ -157,6 +157,9 @@ protected:
 
     int m_sampleCount { 1 };
 
+    // High-DPI: pixel size (logical size * device pixel ratio)
+    QSize m_pixelSize;
+
 private:
     QRhiGraphicsPipeline *createBlendPipeline(QRhi *rhi, QRhiRenderPassDescriptor *renderPass, QRhiShaderResourceBindings *bindings);
     QRhiGraphicsPipeline *createClipPipeline(QRhi *rhi, QRhiRenderPassDescriptor *renderPassDescriptor,

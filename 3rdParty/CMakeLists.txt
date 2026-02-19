@@ -8,15 +8,23 @@
 cmake_minimum_required(VERSION 3.14)
 project(rive_cpp VERSION 1.0.0 LANGUAGES CXX C)
 
+# When used as a subdirectory, CMAKE_SOURCE_DIR is the top-level project (e.g. cybercat-qt).
+# Use the RiveQtQuickPlugin root (parent of this 3rdParty dir) for all paths.
+get_filename_component(RIVEQTQUICKPLUGIN_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/.." ABSOLUTE)
+
 set(BUILD_SHARED_LIBS OFF)
 set(RIVE_CPP_DEFINITIONS "_RIVE_INTERNAL_")
-set(RIVE_CPP_SOURCE_DIR  "${CMAKE_SOURCE_DIR}/3rdParty/rive-runtime")
-set(RIVE_CPP_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/3rdParty/rive-runtime/include")
+set(RIVE_CPP_SOURCE_DIR  "${RIVEQTQUICKPLUGIN_SOURCE_DIR}/3rdParty/rive-runtime")
+set(RIVE_CPP_INCLUDE_DIR "${RIVEQTQUICKPLUGIN_SOURCE_DIR}/3rdParty/rive-runtime/include")
 
 file(GLOB RIVE_CPP_SOURCE_DIR_SUBDIRS LIST_DIRECTORIES true "${RIVE_CPP_SOURCE_DIR}/*")
-list(GET RIVE_CPP_SOURCE_DIR_SUBDIRS 0 RIVE_CPP_SOURCE_DIR)
+list(LENGTH RIVE_CPP_SOURCE_DIR_SUBDIRS RIVE_CPP_SUBDIR_COUNT)
+if(RIVE_CPP_SUBDIR_COUNT GREATER 0)
+  list(GET RIVE_CPP_SOURCE_DIR_SUBDIRS 0 RIVE_CPP_FIRST_SUBDIR)
+  set(RIVE_CPP_SOURCE_DIR "${RIVE_CPP_FIRST_SUBDIR}")
+endif()
 
-set(HARFBUZZ_SOURCE_DIR "${CMAKE_SOURCE_DIR}/3rdParty/cmake/harfbuzz")
+set(HARFBUZZ_SOURCE_DIR "${RIVEQTQUICKPLUGIN_SOURCE_DIR}/3rdParty/harfbuzz")
 set(SHEENBIDI_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/SheenBidi")
 
 set(CMAKE_CXX_STANDARD 17)
@@ -32,7 +40,7 @@ include_directories("${RIVE_CPP_INCLUDE_DIR}")
 
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 
-add_subdirectory("harfbuzz")
+add_subdirectory("harfbuzz" "harfbuzz_build")
 
 set(HARFBUZZ_BUILD_TYPE "${CMAKE_BUILD_TYPE}")
 set(HARFBUZZ_DEFINITIONS "HAVE_OT;HB_NO_FALLBACK_SHAPE;HB_NO_WIN1256;_HAS_EXCEPTIONS=0")
@@ -74,7 +82,13 @@ add_definitions(-D_UNICODE -DUNICODE)
 #
 ############## SHEENBIDI
 
-file(COPY ${RIVE_CPP_INCLUDE_DIR} DESTINATION ${CMAKE_BINARY_DIR}/output)
+# Copy rive-runtime include dir; use PATTERN to avoid issues on Windows when dir is empty
+if(EXISTS "${RIVE_CPP_INCLUDE_DIR}")
+  file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/output")
+  file(COPY "${RIVE_CPP_INCLUDE_DIR}" DESTINATION "${CMAKE_BINARY_DIR}/output")
+else()
+  message(FATAL_ERROR "rive-runtime include dir not found: ${RIVE_CPP_INCLUDE_DIR}")
+endif()
 
 
 file(GLOB_RECURSE SHEENBIDI_SOURCES
@@ -94,7 +108,7 @@ set_target_properties(sheenbidi PROPERTIES
 #
 #
 ############## RIVE RUNTIME
-file(GLOB_RECURSE RIVE_CPP_SOURCES "${CMAKE_SOURCE_DIR}/3rdParty/rive-runtime/src/*.cpp")
+file(GLOB_RECURSE RIVE_CPP_SOURCES "${RIVEQTQUICKPLUGIN_SOURCE_DIR}/3rdParty/rive-runtime/src/*.cpp")
 
 
 if(BUILD_SHARED_LIBS)
