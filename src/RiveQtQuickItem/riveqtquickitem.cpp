@@ -123,10 +123,18 @@ void RiveQtQuickItem::updateInternalArtboard()
     }
 
     if (m_currentArtboardIndex == -1) {
-        m_currentArtboardInstance = m_riveFile->artboardDefault();
+        auto defaultArtboard = m_riveFile->artboardDefault();
+        if (defaultArtboard) {
+            m_currentArtboardInstance = std::shared_ptr<rive::ArtboardInstance>(defaultArtboard.release());
+        }
     } else if (!m_currentArtboardInstance
-               || m_riveFile->artboardAt(m_currentArtboardIndex).get() != m_currentArtboardInstance->artboard()) {
-        m_currentArtboardInstance = m_riveFile->artboardAt(m_currentArtboardIndex);
+               || m_riveFile->artboardAt(m_currentArtboardIndex)->artboardSource() != m_currentArtboardInstance->artboardSource()) {
+        auto artboard = m_riveFile->artboardAt(m_currentArtboardIndex);
+        if (artboard) {
+            m_currentArtboardInstance = std::shared_ptr<rive::ArtboardInstance>(artboard.release());
+        } else {
+            m_currentArtboardInstance = nullptr;
+        }
     }
 
     if (!m_currentArtboardInstance) {
@@ -902,6 +910,20 @@ void RiveQtQuickItem::setFillMode(RiveRenderSettings::FillMode fillMode)
 {
     m_renderSettings.fillMode = fillMode;
     emit fillModeChanged();
+}
+
+RiveRenderSettings::DitherMode RiveQtQuickItem::ditherMode() const
+{
+    return m_renderSettings.ditherMode;
+}
+
+void RiveQtQuickItem::setDitherMode(RiveRenderSettings::DitherMode ditherMode)
+{
+    if (m_renderSettings.ditherMode != ditherMode) {
+        m_renderSettings.ditherMode = ditherMode;
+        emit ditherModeChanged();
+        update();
+    }
 }
 
 int RiveQtQuickItem::frameRate()

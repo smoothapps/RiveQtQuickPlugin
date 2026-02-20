@@ -336,6 +336,28 @@ class RiveQtQuickItem : public RiveQtQuickItemBase
     Q_PROPERTY(RiveRenderSettings::FillMode fillMode READ fillMode WRITE setFillMode NOTIFY fillModeChanged)
 
     /**
+     * \property RiveQtQuickItem::ditherMode
+     *
+     * \brief Controls the dithering mode for rendering.
+     *
+     * This property controls how dithering is applied to reduce color banding in gradients.
+     * Dithering adds a small amount of noise to smooth out color transitions, improving
+     * the visual quality of gradients, especially on lower bit-depth displays.
+     *
+     * The possible modes are:
+     * - \em DitherNone: No dithering is applied.
+     * - \em DitherInterleavedGradientNoise: Uses interleaved gradient noise for dithering (default).
+     *
+     * \par Example:
+     * \code
+     * RiveQtQuickItem {
+     *     ditherMode: RiveRenderSettings.DitherInterleavedGradientNoise // Enable dithering
+     * }
+     * \endcode
+     */
+    Q_PROPERTY(RiveRenderSettings::DitherMode ditherMode READ ditherMode WRITE setDitherMode NOTIFY ditherModeChanged)
+
+    /**
      * \property RiveQtQuickItem::frameRate
      *
      * \brief Represents the frame rate of the animation.
@@ -408,6 +430,9 @@ public:
     RiveRenderSettings::FillMode fillMode() const;
     void setFillMode(RiveRenderSettings::FillMode fillMode);
 
+    RiveRenderSettings::DitherMode ditherMode() const;
+    void setDitherMode(RiveRenderSettings::DitherMode ditherMode);
+
     int frameRate();
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
@@ -437,6 +462,7 @@ signals:
     void renderQualityChanged();
     void postprocessingModeChanged();
     void fillModeChanged();
+    void ditherModeChanged();
 
     void frameRateChanged();
 

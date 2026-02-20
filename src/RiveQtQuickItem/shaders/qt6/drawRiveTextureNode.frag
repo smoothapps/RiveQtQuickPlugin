@@ -26,6 +26,7 @@ layout(std140, binding = 0) uniform buf {
     vec4 stopColors[20];                //144
     vec2 gradientPositions[20];         //464
     mat4 tranformMatrix;                //784
+    int ditherMode;                     //848
 };
 layout(binding = 1) uniform sampler2D image;
 
@@ -45,6 +46,28 @@ vec4 getGradientColor( float gradientCoord) {
     return gradientColor;
 }
 
+// Interleaved gradient noise for dithering
+// Based on: https://blog.demofox.org/2022/01/01/interleaved-gradient-noise-a-different-kind-of-low-discrepancy-sequence/
+float interleavedGradientNoise(vec2 fragCoord)
+{
+    float v1 = fract(0.06711056 * fragCoord.x + 0.00583715 * fragCoord.y);
+    float v2 = fract(52.9829189 * v1);
+    return v2;
+}
+
+vec4 applyDither(vec4 color, vec2 fragCoord, int ditherMode)
+{
+    if (ditherMode == 0) { // DitherNone
+        return color;
+    }
+    
+    // DitherInterleavedGradientNoise
+    float noise = interleavedGradientNoise(fragCoord);
+    // Scale noise to [-0.5/255, 0.5/255] range for 8-bit color channels
+    float dither = (noise - 0.5) / 255.0;
+    
+    return vec4(color.rgb + dither, color.a);
+}
 
 void main()
 {
@@ -69,4 +92,5 @@ void main()
         }
     }
     fragColor = fragColor * qt_Opacity;
+    fragColor = applyDither(fragColor, gl_FragCoord.xy, ditherMode);
 }

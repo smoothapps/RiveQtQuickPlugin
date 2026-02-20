@@ -81,9 +81,17 @@ public:
     };
     Q_ENUM(PostprocessingMode)
 
+    enum DitherMode
+    {
+        DitherNone = 0,
+        DitherInterleavedGradientNoise = 1
+    };
+    Q_ENUM(DitherMode)
+
     RenderQuality renderQuality { Medium };
     PostprocessingMode postprocessingMode { None };
     QSGRendererInterface::GraphicsApi graphicsApi { QSGRendererInterface::GraphicsApi::Software };
     FillMode fillMode { PreserveAspectFit };
+    DitherMode ditherMode { DitherInterleavedGradientNoise };
 };
 Q_DECLARE_METATYPE(RiveRenderSettings)

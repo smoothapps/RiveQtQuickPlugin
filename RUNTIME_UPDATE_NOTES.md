@@ -73,11 +73,43 @@ Updated `3rdParty/CMakeLists.txt` with:
 3. **Rendering**: Test on all graphics APIs (OpenGL, Metal, Vulkan, D3D11)
 4. **State Machines**: Verify QML bindings and property updates
 
+## Code Changes Required
+
+### Renderer API Updates
+- **drawImage()**: Now requires `ImageSampler` parameter (added between `RenderImage*` and `BlendMode`)
+- **drawImageMesh()**: Now requires `ImageSampler` parameter (added between `RenderImage*` and buffer parameters)
+- **modulateOpacity()**: New pure virtual method that must be implemented
+
+**Files Updated**:
+- `src/RiveQtQuickItem/renderer/riveqtpainterrenderer.h/cpp`
+- `src/RiveQtQuickItem/renderer/riveqtrhirenderer.h/cpp`
+
+### File Type Change
+- **File::import()**: Now returns `rcp<File>` instead of `unique_ptr<File>`
+- Changed `m_riveFile` from `std::unique_ptr<rive::File>` to `rive::rcp<rive::File>`
+
+**Files Updated**:
+- `src/RiveQtQuickItem/riveqtquickitem.h/cpp`
+
+### ArtboardInstance Handling
+- **artboardAt()** and **artboardDefault()**: Still return `unique_ptr<ArtboardInstance>`
+- Need to convert to `shared_ptr` when assigning to `m_currentArtboardInstance`
+- Fixed artboard comparison to use `artboardSource()` instead of non-existent `artboard()` method
+
+**Files Updated**:
+- `src/RiveQtQuickItem/riveqtquickitem.cpp`
+
+### ListenerType Enum
+- **draggableConstraint**: Removed from enum (no longer exists)
+
+**Files Updated**:
+- `src/RiveQtQuickItem/riveqtquickitem.cpp`
+
 ## Notes
 
-- No code changes required in RiveQtQuickPlugin implementation
-- All APIs remain backward compatible
-- Factory abstraction successfully shields plugin from internal rendering changes
+- Factory interface remains compatible (no new methods added)
+- Core APIs (File, ArtboardInstance, StateMachineInstance) remain backward compatible
+- Renderer API changes required updates to both software and RHI renderers
 - Vec2D and HitResult types remain available (included transitively)
 
 ## Rollback

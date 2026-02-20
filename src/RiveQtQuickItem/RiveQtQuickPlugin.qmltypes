@@ -18,7 +18,7 @@ Module {
         exportMetaObjectRevisions: [256]
         Enum {
             name: "LoadingStatus"
-            lineNumber: 361
+            lineNumber: 383
             values: ["Idle", "Loading", "Loaded", "Error", "Unloading"]
         }
         Property {
@@ -143,36 +143,46 @@ Module {
             lineNumber: 336
         }
         Property {
+            name: "ditherMode"
+            type: "RiveRenderSettings::DitherMode"
+            read: "ditherMode"
+            write: "setDitherMode"
+            notify: "ditherModeChanged"
+            index: 13
+            lineNumber: 358
+        }
+        Property {
             name: "frameRate"
             type: "int"
             read: "frameRate"
             notify: "frameRateChanged"
-            index: 13
-            lineNumber: 355
+            index: 14
+            lineNumber: 377
             isReadonly: true
         }
-        Signal { name: "animationsChanged"; lineNumber: 418 }
-        Signal { name: "artboardsChanged"; lineNumber: 419 }
-        Signal { name: "stateMachinesChanged"; lineNumber: 420 }
-        Signal { name: "fileSourceChanged"; lineNumber: 422 }
-        Signal { name: "loadingStatusChanged"; lineNumber: 423 }
-        Signal { name: "currentArtboardIndexChanged"; lineNumber: 425 }
-        Signal { name: "currentAnimationIndexChanged"; lineNumber: 426 }
-        Signal { name: "currentStateMachineIndexChanged"; lineNumber: 427 }
-        Signal { name: "interactiveChanged"; lineNumber: 429 }
+        Signal { name: "animationsChanged"; lineNumber: 443 }
+        Signal { name: "artboardsChanged"; lineNumber: 444 }
+        Signal { name: "stateMachinesChanged"; lineNumber: 445 }
+        Signal { name: "fileSourceChanged"; lineNumber: 447 }
+        Signal { name: "loadingStatusChanged"; lineNumber: 448 }
+        Signal { name: "currentArtboardIndexChanged"; lineNumber: 450 }
+        Signal { name: "currentAnimationIndexChanged"; lineNumber: 451 }
+        Signal { name: "currentStateMachineIndexChanged"; lineNumber: 452 }
+        Signal { name: "interactiveChanged"; lineNumber: 454 }
         Signal {
             name: "loadFileAfterUnloading"
-            lineNumber: 431
+            lineNumber: 456
             Parameter { name: "fileName"; type: "QString" }
         }
-        Signal { name: "internalArtboardChanged"; lineNumber: 432 }
-        Signal { name: "internalStateMachineChanged"; lineNumber: 433 }
-        Signal { name: "stateMachineInterfaceChanged"; lineNumber: 434 }
-        Signal { name: "stateMachineStringInterfaceChanged"; lineNumber: 435 }
-        Signal { name: "renderQualityChanged"; lineNumber: 437 }
-        Signal { name: "postprocessingModeChanged"; lineNumber: 438 }
-        Signal { name: "fillModeChanged"; lineNumber: 439 }
-        Signal { name: "frameRateChanged"; lineNumber: 441 }
+        Signal { name: "internalArtboardChanged"; lineNumber: 457 }
+        Signal { name: "internalStateMachineChanged"; lineNumber: 458 }
+        Signal { name: "stateMachineInterfaceChanged"; lineNumber: 459 }
+        Signal { name: "stateMachineStringInterfaceChanged"; lineNumber: 460 }
+        Signal { name: "renderQualityChanged"; lineNumber: 462 }
+        Signal { name: "postprocessingModeChanged"; lineNumber: 463 }
+        Signal { name: "fillModeChanged"; lineNumber: 464 }
+        Signal { name: "ditherModeChanged"; lineNumber: 465 }
+        Signal { name: "frameRateChanged"; lineNumber: 467 }
     }
     Component {
         file: "rivestatemachineinput.h"

@@ -169,6 +169,11 @@ void RiveQSGRHIRenderNode::setPostprocessingMode(const RiveRenderSettings::Postp
     }
 }
 
+void RiveQSGRHIRenderNode::setDitherMode(const RiveRenderSettings::DitherMode ditherMode)
+{
+    m_ditherMode = ditherMode;
+}
+
 void RiveQSGRHIRenderNode::renderOffscreen()
 {
     if (!m_renderSurfaceA.valid() || !m_renderSurfaceB.valid() || !m_renderSurfaceIntern.valid() || m_rect.width() == 0
@@ -379,6 +384,7 @@ RiveQSGRHIRenderNode *RiveQSGRHIRenderNode::create(const RiveRenderSettings &ren
         auto node = new RiveQSGRHIRenderNode(window, artboardInstance, geometry);
         node->setFillMode(renderSettings.fillMode);
         node->setPostprocessingMode(renderSettings.postprocessingMode);
+        node->setDitherMode(renderSettings.ditherMode);
         return node;
     } else {
         qCCritical(rqqpFactory)
@@ -498,7 +504,7 @@ void RiveQSGRHIRenderNode::prepare()
     }
 
     if (!m_drawUniformBuffer) {
-        m_drawUniformBuffer = rhi->newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, 848);
+        m_drawUniformBuffer = rhi->newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, 852);
         m_drawUniformBuffer->create();
         m_cleanupList.append(m_drawUniformBuffer);
     }
@@ -746,7 +752,7 @@ void RiveQSGRHIRenderNode::prepare()
     }
 
     if (!m_finalDrawUniformBuffer) {
-        m_finalDrawUniformBuffer = rhi->newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, 92);
+        m_finalDrawUniformBuffer = rhi->newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, 96);
         m_finalDrawUniformBuffer->create();
         m_cleanupList.append(m_finalDrawUniformBuffer);
     }
@@ -807,6 +813,8 @@ void RiveQSGRHIRenderNode::prepare()
     resourceUpdates->updateDynamicBuffer(m_finalDrawUniformBuffer, 80, 4, &top);
     resourceUpdates->updateDynamicBuffer(m_finalDrawUniformBuffer, 84, 4, &bottom);
     resourceUpdates->updateDynamicBuffer(m_finalDrawUniformBuffer, 88, 4, &useTextureNumber);
+    int ditherMode = static_cast<int>(m_ditherMode);
+    resourceUpdates->updateDynamicBuffer(m_finalDrawUniformBuffer, 92, 4, &ditherMode);
 
     commandBuffer->resourceUpdate(resourceUpdates);
 

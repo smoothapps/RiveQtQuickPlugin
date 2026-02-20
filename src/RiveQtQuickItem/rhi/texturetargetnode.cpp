@@ -168,7 +168,7 @@ void TextureTargetNode::prepareRender()
     // shared buffers / bindings will transfer information into multiple passes
     // this is why each objects needs its own buffers
     if (!m_drawUniformBuffer) {
-        m_drawUniformBuffer = rhi->newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, 848);
+        m_drawUniformBuffer = rhi->newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, 852);
         m_drawUniformBuffer->create();
         m_cleanupList.append(m_drawUniformBuffer);
     }
@@ -263,6 +263,10 @@ void TextureTargetNode::prepareRender()
         m_resourceUpdates->updateDynamicBuffer(m_drawUniformBuffer, 136, 4, &b);
         m_resourceUpdates->updateDynamicBuffer(m_drawUniformBuffer, 140, 4, &a);
     }
+    
+    // Update dither mode uniform
+    int ditherMode = m_node ? static_cast<int>(m_node->ditherMode()) : 0;
+    m_resourceUpdates->updateDynamicBuffer(m_drawUniformBuffer, 848, 4, &ditherMode);
 }
 
 void TextureTargetNode::render(QRhiCommandBuffer *commandBuffer)
@@ -402,7 +406,7 @@ void TextureTargetNode::renderBlend(QRhiCommandBuffer *cb)
     }
 
     if (!m_blendUniformBuffer) {
-        m_blendUniformBuffer = rhi->newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, 80);
+        m_blendUniformBuffer = rhi->newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, 84);
         m_cleanupList.append(m_blendUniformBuffer);
         m_blendUniformBuffer->create();
     }
@@ -448,6 +452,8 @@ void TextureTargetNode::renderBlend(QRhiCommandBuffer *cb)
     m_blendResourceUpdates->updateDynamicBuffer(m_blendUniformBuffer, 0, 64, mvp.constData());
     m_blendResourceUpdates->updateDynamicBuffer(m_blendUniformBuffer, 64, 4, &blendMode);
     m_blendResourceUpdates->updateDynamicBuffer(m_blendUniformBuffer, 68, 4, &flipped);
+    int ditherMode = m_node ? static_cast<int>(m_node->ditherMode()) : 0;
+    m_blendResourceUpdates->updateDynamicBuffer(m_blendUniformBuffer, 72, 4, &ditherMode);
 
     auto *currentDisplayBufferTarget = m_node->currentBlendTarget();
     auto *blendPipeline = m_node->currentBlendPipeline();

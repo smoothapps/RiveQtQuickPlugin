@@ -58,6 +58,17 @@ elseif (${QT_VERSION_MAJOR} EQUAL 6)
     )
 endif()
 
+# Set the binary output directory for the plugin (needed before creating targets)
+set(QML_BINARY_DIR "${CMAKE_BINARY_DIR}/binary/" CACHE PATH "Binary directory for QML plugins")
+
+# For Qt 6, ensure qmldir exists in output directory at configure time (needed by qt_add_qml_module)
+# Create it immediately so it's available when Qt's build system needs it
+if (${QT_VERSION_MAJOR} EQUAL 6)
+    set(QMLDIR_OUTPUT "${QML_BINARY_DIR}/${PROJECT_NAME}/qmldir")
+    file(MAKE_DIRECTORY "${QML_BINARY_DIR}/${PROJECT_NAME}")
+    file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/qmldir" DESTINATION "${QML_BINARY_DIR}/${PROJECT_NAME}")
+endif()
+
 if (${QT_VERSION_MAJOR} EQUAL 5)
     add_library(${PROJECT_NAME} SHARED ${QT5_PROJECT_SOURCES} ${PROJECT_SOURCES})
 elseif (${QT_VERSION_MAJOR} EQUAL 6)
@@ -149,16 +160,12 @@ if (${QT_VERSION_MAJOR} EQUAL 6)
     )
 endif()
 
-
-# Set the binary output directory for the plugin
-set(QML_BINARY_DIR "${CMAKE_BINARY_DIR}/binary/" CACHE PATH "Binary directory for QML plugins")
-
 # Copy the plugin and qmldir to the binary directory after building
 add_custom_command(
     TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory "${QML_BINARY_DIR}/${PROJECT_NAME}"
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${PROJECT_NAME}> "${QML_BINARY_DIR}/${PROJECT_NAME}"
-    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/qmldir" "${QML_BINARY_DIR}/${PROJECT_NAME}"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/qmldir" "${QML_BINARY_DIR}/${PROJECT_NAME}/qmldir"
     COMMENT "Copying plugin and qmldir to binary directory"
 )
 

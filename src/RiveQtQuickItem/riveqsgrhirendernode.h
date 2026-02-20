@@ -26,6 +26,8 @@ public:
     void setRect(const QRectF &bounds) override;
     void setFillMode(const RiveRenderSettings::FillMode mode);
     void setPostprocessingMode(const RiveRenderSettings::PostprocessingMode postprocessingMode);
+    void setDitherMode(const RiveRenderSettings::DitherMode ditherMode);
+    RiveRenderSettings::DitherMode ditherMode() const { return m_ditherMode; }
 
     void renderOffscreen() override;
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
@@ -152,6 +154,7 @@ protected:
 
     bool m_verticesDirty = true;
     RiveRenderSettings::FillMode m_fillMode;
+    RiveRenderSettings::DitherMode m_ditherMode { RiveRenderSettings::DitherInterleavedGradientNoise };
 
     PostprocessingSMAA *m_postprocessing { nullptr };
 
