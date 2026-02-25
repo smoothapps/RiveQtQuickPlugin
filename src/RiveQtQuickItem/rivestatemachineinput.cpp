@@ -45,6 +45,8 @@ void RiveStateMachineInput::generateStringInterface()
     if (!m_stateMachineInstance)
         return;
 
+    // make sure all maps are reset when regenerating the string interface
+    m_inputMap.clear();
     m_generatedRivePropertyMap.clear();
     m_normalizedToOriginalName.clear();
     emit riveInputsChanged();
@@ -170,8 +172,7 @@ QObject *RiveStateMachineInput::listenTo(const QString &name)
 {
     QString key = normalizeName(name);
     if (!m_dynamicProperties.contains(key)) {
-        m_dynamicProperties[key] = new DynamicPropertyHolder(this);
-        m_dynamicProperties[key]->setValue(getRiveProperty(name));
+        m_dynamicProperties[key] = new DynamicPropertyHolder(this);        // use normalized key for the lookup        m_dynamicProperties[key]->setValue(getRiveProperty(name));
     }
 
     return m_dynamicProperties[key];
@@ -249,8 +250,9 @@ void RiveStateMachineInput::activateTrigger()
     QObject *senderObj = sender();
     if (senderObj) {
         QByteArray triggerName = senderSignalIndex() != -1 ? senderObj->metaObject()->method(senderSignalIndex()).name() : QByteArray();
-        if (m_inputMap.contains(triggerName)) {
-            auto *input = m_inputMap.value(triggerName);
+        QString key = normalizeName(QString::fromUtf8(triggerName));
+        if (m_inputMap.contains(key)) {
+            auto *input = m_inputMap.value(key);
 
             if (input->inputCoreType() == rive::StateMachineTrigger::typeKey) {
                 auto trigger = static_cast<rive::SMITrigger *>(input);
@@ -337,6 +339,7 @@ void RiveStateMachineInput::connectStateMachineToProperties()
     m_inputMap.clear();
     m_generatedRivePropertyMap.clear();
     m_normalizedToOriginalName.clear();
+    m_dynamicProperties.clear();
 
     // return if empty state machine has been set
     if (!m_isCompleted)
