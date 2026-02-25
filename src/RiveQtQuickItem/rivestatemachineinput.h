@@ -33,6 +33,8 @@
  *
  * \note The property names in QML should be the same as those in the Rive animation,
  * excluding the names listed in `reservedWords`.
+ * Matching is performed case-insensitively for both properties and triggers; the
+ * implementation converts names to lowercase before comparing.
  *
  * \code{.qml}
  * RiveQtQuickItem {
@@ -200,18 +202,20 @@ protected:
 
 private:
     QString cleanUpRiveName(const QString &name);
+    QString normalizeName(const QString &name) const;
     void connectStateMachineToProperties();
     QPair<bool, QVariant> updateProperty(const QString &propertyName, const QVariant &propertyValue);
 
+protected: // exposed for testing
     rive::StateMachineInstance *m_stateMachineInstance { nullptr };
-    QMap<QString, rive::SMIInput *> m_inputMap;
+    QMap<QString, rive::SMIInput *> m_inputMap;                   // key: normalized name (lowercase)
+    QVariantMap m_generatedRivePropertyMap;                         // key: normalized name
+    QMap<QString, QString> m_normalizedToOriginalName;             // preserve original cleaned name for display
+    QMap<QString, DynamicPropertyHolder *> m_dynamicProperties;
 
     bool m_dirty { false };
     bool m_isCompleted { false };
     bool m_hasGeneratedStringInterface { false };
-
-    QVariantMap m_generatedRivePropertyMap;
-    QMap<QString, DynamicPropertyHolder *> m_dynamicProperties;
 };
 
 Q_DECLARE_METATYPE(RiveStateMachineInput::RivePropertyType)

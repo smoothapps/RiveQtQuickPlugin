@@ -46,34 +46,39 @@ void RiveStateMachineInput::generateStringInterface()
         return;
 
     m_generatedRivePropertyMap.clear();
+    m_normalizedToOriginalName.clear();
     emit riveInputsChanged();
 
     for (int i = 0; i < m_stateMachineInstance->inputCount(); i++) {
         auto input = m_stateMachineInstance->input(i);
 
-        const QString &propertyName = cleanUpRiveName(QString::fromStdString(input->name()));
-        if (propertyName.isEmpty())
+        const QString cleaned = cleanUpRiveName(QString::fromStdString(input->name()));
+        if (cleaned.isEmpty())
             continue;
+        const QString name = normalizeName(cleaned);
+
+        // keep a copy of the original cleaned name for later reporting
+        m_normalizedToOriginalName.insert(name, cleaned);
 
         if (input->inputCoreType() == rive::StateMachineNumber::typeKey) {
-            qCDebug(rqqpInspection) << "Found the following properties in rive animation" << propertyName << "Type: Number";
+            qCDebug(rqqpInspection) << "Found the following properties in rive animation" << cleaned << "Type: Number";
             auto numberInput = static_cast<rive::SMINumber *>(input);
-            m_inputMap.insert(propertyName, numberInput);
-            m_generatedRivePropertyMap.insert(propertyName, QVariant::fromValue(RiveStateMachineInput::RivePropertyType::RiveNumber));
+            m_inputMap.insert(name, numberInput);
+            m_generatedRivePropertyMap.insert(name, QVariant::fromValue(RiveStateMachineInput::RivePropertyType::RiveNumber));
         }
 
         if (input->inputCoreType() == rive::StateMachineBool::typeKey) {
-            qCDebug(rqqpInspection) << "Found the following properties in rive animation" << propertyName << "Type: Bool";
+            qCDebug(rqqpInspection) << "Found the following properties in rive animation" << cleaned << "Type: Bool";
             auto booleanInput = static_cast<rive::SMIBool *>(input);
-            m_inputMap.insert(propertyName, booleanInput);
-            m_generatedRivePropertyMap.insert(propertyName, QVariant::fromValue(RiveStateMachineInput::RivePropertyType::RiveBoolean));
+            m_inputMap.insert(name, booleanInput);
+            m_generatedRivePropertyMap.insert(name, QVariant::fromValue(RiveStateMachineInput::RivePropertyType::RiveBoolean));
         }
 
         if (input->inputCoreType() == rive::StateMachineTrigger::typeKey) {
-            qCDebug(rqqpInspection) << "Found the following function in rive animation" << propertyName << "Type: Trigger";
+            qCDebug(rqqpInspection) << "Found the following function in rive animation" << cleaned << "Type: Trigger";
             auto tiggerInput = static_cast<rive::SMITrigger *>(input);
-            m_inputMap.insert(propertyName, tiggerInput);
-            m_generatedRivePropertyMap.insert(propertyName, QVariant::fromValue(RiveStateMachineInput::RivePropertyType::RiveTrigger));
+            m_inputMap.insert(name, tiggerInput);
+            m_generatedRivePropertyMap.insert(name, QVariant::fromValue(RiveStateMachineInput::RivePropertyType::RiveTrigger));
         }
     }
 
@@ -87,27 +92,29 @@ void RiveStateMachineInput::setRiveProperty(const QString &propertyName, const Q
     if (!m_stateMachineInstance)
         return;
 
-    if (m_generatedRivePropertyMap.contains(propertyName)) {
-        const auto &type = m_generatedRivePropertyMap.value(propertyName).value<RiveStateMachineInput::RivePropertyType>();
+    // normalize the key so lookups ignore case
+    QString key = normalizeName(propertyName);
+    if (m_generatedRivePropertyMap.contains(key)) {
+        const auto &type = m_generatedRivePropertyMap.value(key).value<RiveStateMachineInput::RivePropertyType>();
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
         if ((value.typeId() ==  QMetaType::Type::Int || value.typeId() ==  QMetaType::Type::Double)
             && type == RiveStateMachineInput::RivePropertyType::RiveNumber) {
-            auto *input = static_cast<rive::SMINumber *>(m_inputMap.value(propertyName));
+            auto *input = static_cast<rive::SMINumber *>(m_inputMap.value(key));
             input->value(value.toDouble());
         }
         if (value.typeId() ==  QMetaType::Type::Bool && type == RiveStateMachineInput::RivePropertyType::RiveBoolean) {
-            auto *input = static_cast<rive::SMIBool *>(m_inputMap.value(propertyName));
+            auto *input = static_cast<rive::SMIBool *>(m_inputMap.value(key));
             input->value(value.toBool());
         }
 #else
         if ((value.type() == QVariant::Type::Int || value.type() == QVariant::Type::Double)
             && type == RiveStateMachineInput::RivePropertyType::RiveNumber) {
-            auto *input = static_cast<rive::SMINumber *>(m_inputMap.value(propertyName));
+            auto *input = static_cast<rive::SMINumber *>(m_inputMap.value(key));
             input->value(value.toDouble());
         }
         if (value.type() == QVariant::Type::Bool && type == RiveStateMachineInput::RivePropertyType::RiveBoolean) {
-            auto *input = static_cast<rive::SMIBool *>(m_inputMap.value(propertyName));
+            auto *input = static_cast<rive::SMIBool *>(m_inputMap.value(key));
             input->value(value.toBool());
         }
 #endif
@@ -121,10 +128,11 @@ QVariant RiveStateMachineInput::getRiveProperty(const QString &propertyName) con
     if (!m_stateMachineInstance)
         return QVariant();
 
-    if (m_generatedRivePropertyMap.contains(propertyName)) {
-        if (m_inputMap.contains(propertyName)) {
+    QString key = normalizeName(propertyName);
+    if (m_generatedRivePropertyMap.contains(key)) {
+        if (m_inputMap.contains(key)) {
 
-            auto *input = m_inputMap.value(propertyName);
+            auto *input = m_inputMap.value(key);
             // use type to stay compatible to qt5
             if (input->inputCoreType() == rive::StateMachineNumber::typeKey) {
                 auto numberInput = static_cast<rive::SMINumber *>(input);
@@ -145,9 +153,10 @@ QVariant RiveStateMachineInput::getRiveProperty(const QString &propertyName) con
 
 void RiveStateMachineInput::callTrigger(const QString &triggerName)
 {
-    if (m_generatedRivePropertyMap.contains(triggerName)) {
-        if (m_inputMap.contains(triggerName)) {
-            auto *input = m_inputMap.value(triggerName);
+    QString key = normalizeName(triggerName);
+    if (m_generatedRivePropertyMap.contains(key)) {
+        if (m_inputMap.contains(key)) {
+            auto *input = m_inputMap.value(key);
 
             if (input->inputCoreType() == rive::StateMachineTrigger::typeKey) {
                 auto trigger = static_cast<rive::SMITrigger *>(input);
@@ -159,17 +168,19 @@ void RiveStateMachineInput::callTrigger(const QString &triggerName)
 
 QObject *RiveStateMachineInput::listenTo(const QString &name)
 {
-    if (!m_dynamicProperties.contains(name)) {
-        m_dynamicProperties[name] = new DynamicPropertyHolder(this);
-        m_dynamicProperties[name]->setValue(getRiveProperty(name));
+    QString key = normalizeName(name);
+    if (!m_dynamicProperties.contains(key)) {
+        m_dynamicProperties[key] = new DynamicPropertyHolder(this);
+        m_dynamicProperties[key]->setValue(getRiveProperty(name));
     }
 
-    return m_dynamicProperties[name];
+    return m_dynamicProperties[key];
 }
 
 QPair<bool, QVariant> RiveStateMachineInput::updateProperty(const QString &propertyName, const QVariant &propertyValue)
 {
-    auto *input = m_inputMap.value(propertyName);
+    QString key = normalizeName(propertyName);
+    auto *input = m_inputMap.value(key);
     if (input->inputCoreType() == rive::StateMachineNumber::typeKey) {
         auto numberInput = static_cast<rive::SMINumber *>(input);
         if (numberInput) {
@@ -205,14 +216,15 @@ void RiveStateMachineInput::updateValues()
 
     for (int i = 0; i < metaObject->propertyCount(); ++i) {
         QMetaProperty property = metaObject->property(i);
-        QString propertyName = QString(property.name()); // convert property name to lower case to match inputMap key
-        QVariant propertyValue = this->property(propertyName.toUtf8());
+        QString origName = QString(property.name());
+        QString key = normalizeName(origName);
+        QVariant propertyValue = property.read(this);
 
         // connect change signals of custom qml properties to our handle method where we will match them to rive inputs
-        if (m_inputMap.contains(propertyName) && property.hasNotifySignal()) {
-            const auto &result = updateProperty(propertyName, propertyValue);
+        if (m_inputMap.contains(key) && property.hasNotifySignal()) {
+            const auto &result = updateProperty(key, propertyValue);
             if (result.first) {
-                this->setProperty(propertyName.toLatin1(), result.second);
+                property.write(this, result.second);
             }
         }
     }
@@ -282,6 +294,12 @@ QString RiveStateMachineInput::cleanUpRiveName(const QString &name)
     return "";
 }
 
+QString RiveStateMachineInput::normalizeName(const QString &name) const
+{
+    // case-insensitive matching by converting to lowercase
+    return name.toLower();
+}
+
 void RiveStateMachineInput::handlePropertyChanged()
 {
     QString changedSignalPostfix = "Changed";
@@ -293,8 +311,9 @@ void RiveStateMachineInput::handlePropertyChanged()
         if (!propertyName.isEmpty()) {
             propertyName.chop(changedSignalPostfix.size()); // remove 'Changed' postfix from signal name
             QVariant propertyValue = senderObj->property(propertyName);
-            if (propertyValue.isValid() && m_inputMap.contains(propertyName)) {
-                rive::SMIInput *input = m_inputMap[propertyName];
+            QString key = normalizeName(QString::fromUtf8(propertyName));
+            if (propertyValue.isValid() && m_inputMap.contains(key)) {
+                rive::SMIInput *input = m_inputMap[key];
                 if (input->inputCoreType() == rive::StateMachineNumber::typeKey) {
                     rive::SMINumber *numberInput = static_cast<rive::SMINumber *>(input);
                     if (propertyValue.canConvert<float>()) {
@@ -317,6 +336,7 @@ void RiveStateMachineInput::connectStateMachineToProperties()
     // reset
     m_inputMap.clear();
     m_generatedRivePropertyMap.clear();
+    m_normalizedToOriginalName.clear();
 
     // return if empty state machine has been set
     if (!m_isCompleted)
@@ -327,29 +347,31 @@ void RiveStateMachineInput::connectStateMachineToProperties()
     for (int i = 0; i < m_stateMachineInstance->inputCount(); i++) {
         auto input = m_stateMachineInstance->input(i);
 
-        const QString &propertyName = cleanUpRiveName(QString::fromStdString(input->name()));
-        if (propertyName.isEmpty())
+        const QString cleaned = cleanUpRiveName(QString::fromStdString(input->name()));
+        if (cleaned.isEmpty())
             continue;
+        QString name = normalizeName(cleaned);
+        m_normalizedToOriginalName.insert(name, cleaned);
 
         if (input->inputCoreType() == rive::StateMachineNumber::typeKey) {
-            qCDebug(rqqpInspection) << "Found the following properties in rive animation" << propertyName << "Type: Number";
+            qCDebug(rqqpInspection) << "Found the following properties in rive animation" << cleaned << "Type: Number";
             auto numberInput = static_cast<rive::SMINumber *>(input);
-            m_inputMap.insert(propertyName, numberInput);
-            m_generatedRivePropertyMap.insert(propertyName, QVariant::fromValue(RiveStateMachineInput::RivePropertyType::RiveNumber));
+            m_inputMap.insert(name, numberInput);
+            m_generatedRivePropertyMap.insert(name, QVariant::fromValue(RiveStateMachineInput::RivePropertyType::RiveNumber));
         }
 
         if (input->inputCoreType() == rive::StateMachineBool::typeKey) {
-            qCDebug(rqqpInspection) << "Found the following properties in rive animation" << propertyName << "Type: Bool";
+            qCDebug(rqqpInspection) << "Found the following properties in rive animation" << cleaned << "Type: Bool";
             auto booleanInput = static_cast<rive::SMIBool *>(input);
-            m_inputMap.insert(propertyName, booleanInput);
-            m_generatedRivePropertyMap.insert(propertyName, QVariant::fromValue(RiveStateMachineInput::RivePropertyType::RiveBoolean));
+            m_inputMap.insert(name, booleanInput);
+            m_generatedRivePropertyMap.insert(name, QVariant::fromValue(RiveStateMachineInput::RivePropertyType::RiveBoolean));
         }
 
         if (input->inputCoreType() == rive::StateMachineTrigger::typeKey) {
-            qCDebug(rqqpInspection) << "Found the following function in rive animation" << propertyName << "Type: Trigger";
+            qCDebug(rqqpInspection) << "Found the following function in rive animation" << cleaned << "Type: Trigger";
             auto triggerInput = static_cast<rive::SMITrigger *>(input);
-            m_inputMap.insert(propertyName, triggerInput);
-            m_generatedRivePropertyMap.insert(propertyName, QVariant::fromValue(RiveStateMachineInput::RivePropertyType::RiveTrigger));
+            m_inputMap.insert(name, triggerInput);
+            m_generatedRivePropertyMap.insert(name, QVariant::fromValue(RiveStateMachineInput::RivePropertyType::RiveTrigger));
         }
     }
 
@@ -366,15 +388,16 @@ void RiveStateMachineInput::connectStateMachineToProperties()
     // properties
     for (int i = 0; i < metaObject->propertyCount(); ++i) {
         QMetaProperty property = metaObject->property(i);
-        QString propertyName = QString(property.name()).toLower(); // convert property name to lower case to match inputMap key
-        QVariant propertyValue = this->property(propertyName.toUtf8());
+        QString origName = QString(property.name());
+        QString key = normalizeName(origName);
+        // we don't need the value here; the slot will read it later
 
         // connect change signals of custom qml properties to our handle method where we will match them to rive inputs
-        if (m_inputMap.contains(propertyName) && property.hasNotifySignal()) {
-            qCDebug(rqqpInspection) << "map properties" << propertyName << "connected by" << property.notifySignal().methodSignature();
+        if (m_inputMap.contains(key) && property.hasNotifySignal()) {
+            qCDebug(rqqpInspection) << "map properties" << origName << "(normalized" << key << ") connected by" << property.notifySignal().methodSignature();
             connect(this, property.notifySignal(), this, handlePropertyChangedMethod);
         } else {
-            qCDebug(rqqpInspection) << "property" << propertyName << "was not found in rive animation. Not connected";
+            qCDebug(rqqpInspection) << "property" << origName << "(normalized" << key << ") was not found in rive animation. Not connected";
         }
     }
 
@@ -388,7 +411,8 @@ void RiveStateMachineInput::connectStateMachineToProperties()
     for (int i = metaObject->methodOffset(); i < metaObject->methodCount(); ++i) {
         QMetaMethod method = metaObject->method(i);
         if (method.methodType() == QMetaMethod::Signal) {
-            if (m_inputMap.contains(method.name().toLower())) {
+            QString name = normalizeName(method.name());
+            if (m_inputMap.contains(name)) {
                 QObject::connect(this, method, this, triggerActivatedMethod);
             }
         }
@@ -400,8 +424,10 @@ QVariantList RiveStateMachineInput::riveInputs() const
     QVariantList outputList;
 
     for (auto it = m_generatedRivePropertyMap.constBegin(); it != m_generatedRivePropertyMap.constEnd(); ++it) {
+        QString normalized = it.key();
+        QString displayName = m_normalizedToOriginalName.value(normalized, normalized);
         QVariantMap newEntry;
-        newEntry["text"] = it.key();
+        newEntry["text"] = displayName;
         newEntry["type"] = it.value();
         outputList.append(newEntry);
     }
