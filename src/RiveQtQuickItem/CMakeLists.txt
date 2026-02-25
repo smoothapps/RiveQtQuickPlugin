@@ -155,16 +155,19 @@ set(QML_BINARY_DIR "${CMAKE_BINARY_DIR}/binary/" CACHE PATH "Binary directory fo
 
 # testing target
 if(BUILD_TESTING)
-    # the tests need access to plugin classes and Rive headers
-    find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Test REQUIRED)
-    add_executable(rivestatemachineinput_tests
-        tests/rivestatemachineinput_test.cpp
-    )
-    target_link_libraries(rivestatemachineinput_tests PRIVATE
-        ${PROJECT_NAME}
-        Qt${QT_VERSION_MAJOR}::Test
-    )
-    add_test(NAME rive_statemachineinput_tests COMMAND rivestatemachineinput_tests)
+    get_target_property(_plugin_type ${PROJECT_NAME} TYPE)
+    if(NOT _plugin_type STREQUAL "MODULE_LIBRARY")
+        # the tests need access to plugin classes and Rive headers
+        find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Test REQUIRED)
+        add_executable(rivestatemachineinput_tests
+            tests/rivestatemachineinput_test.cpp
+        )
+        target_link_libraries(rivestatemachineinput_tests PRIVATE
+            ${PROJECT_NAME}
+            Qt${QT_VERSION_MAJOR}::Test
+        )
+        add_test(NAME rive_statemachineinput_tests COMMAND rivestatemachineinput_tests)
+    endif()
 endif()
 
 # Copy the plugin and qmldir to the binary directory after building
