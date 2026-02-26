@@ -70,7 +70,9 @@ endif()
 if (MSVC)
     # Set the warning level
     add_compile_options(/W3)
-else()
+endif()
+
+if (MINGW)
     add_compile_options(-Wall -fPIC -Wa,-mbig-obj)
 endif()
 
