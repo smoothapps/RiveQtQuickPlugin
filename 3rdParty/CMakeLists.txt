@@ -67,7 +67,7 @@ elseif(HARFBUZZ_BUILD_TYPE STREQUAL "Release" OR HARFBUZZ_BUILD_TYPE STREQUAL "D
   target_compile_options(harfbuzz PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-O2> $<$<COMPILE_LANGUAGE:C>:-O2>)
 endif()
 
-if (WIN32)
+if (MSVC)
     # Set the warning level
     add_compile_options(/W3)
 else()
