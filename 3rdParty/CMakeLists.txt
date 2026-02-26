@@ -71,7 +71,7 @@ if (MSVC)
     # Set the warning level
     add_compile_options(/W3)
 else()
-    add_compile_options(-Wall -fPIC)
+    add_compile_options(-Wall -fPIC -Wa,-mbig-obj)
 endif()
 
 # Define _UNICODE and UNICODE
